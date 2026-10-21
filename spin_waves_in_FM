@@ -11,9 +11,9 @@ SetGeom(Rect(512e-9,64e-9))
 DefRegion(1, Rect(10e-9, 64e-9).transl(-256e-9,0,0))
 
 //define measurement regions
-DefRegion(2, Rect(10e-9, 64e-9).transl(-40-9,0,0))
-DefRegion(3, Rect(10e-9, 64e-9).transl(-10-9,0,0))
-DefRegion(4, Rect(10e-9, 64e-9).transl(25-9,0,0))
+DefRegion(2, Rect(10e-9, 64e-9).transl(-40e-9,0,0))
+DefRegion(3, Rect(10e-9, 64e-9).transl(-10e-9,0,0))
+DefRegion(4, Rect(10e-9, 64e-9).transl(25e-9,0,0))
 
 //parameters
 Msat = 800e3
