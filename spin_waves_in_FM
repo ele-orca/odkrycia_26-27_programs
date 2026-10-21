@@ -27,7 +27,7 @@ relax()
 save(m)
 
 //sinusoidal excitation
-B_ext.setRegion(1, vector(0,0, 1e-3 * sin(2*pi*f*t)
+B_ext.setRegion(1, vector(0,0, 1e-3 * sin(2*pi*f*t)))
 
 //save states and measurements
 autosave(m, 2e-11)
