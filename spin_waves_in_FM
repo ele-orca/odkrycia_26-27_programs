@@ -8,12 +8,12 @@ SetCellSize(2e-9,2e-9,4e-9)
 SetGeom(Rect(512e-9,64e-9))
 
 //define controlling region (creates spin waves)
-DefRegion(1, Rect(10e-9, 64e-9).transl(-256e-9,0,0)))
+DefRegion(1, Rect(10e-9, 64e-9).transl(-256e-9,0,0))
 
 //define measurement regions
-DefRegion(2, Rect(10e-9, 64e-9).transl(-40-9,0,0)))
-DefRegion(3, Rect(10e-9, 64e-9).transl(-10-9,0,0)))
-DefRegion(4, Rect(10e-9, 64e-9).transl(25-9,0,0)))
+DefRegion(2, Rect(10e-9, 64e-9).transl(-40-9,0,0))
+DefRegion(3, Rect(10e-9, 64e-9).transl(-10-9,0,0))
+DefRegion(4, Rect(10e-9, 64e-9).transl(25-9,0,0))
 
 //parameters
 Msat = 800e3
@@ -25,4 +25,16 @@ m = uniform(1,0,0)
 save(regions)
 relax()
 save(m)
-saveas(m, "../m0")
+
+//sinusoidal excitation
+B_ext.setRegion(1, vector(0,0, 1e-3 * sin(2*pi*f*t)
+
+//save states and measurements
+autosave(m, 2e-11)
+tableadd(m.Region(1))
+tableadd(m.Region(2))
+tableadd(m.Region(3))
+tableadd(m.Region(4))
+tableautosave(2e-11)
+
+run(5e-9)
