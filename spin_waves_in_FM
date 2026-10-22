@@ -18,7 +18,7 @@ DefRegion(4, Rect(10e-9, 64e-9).transl(25e-9,0,0))
 //parameters
 Msat = 800e3
 Aex = 13e-12
-alpha = 0.15
+alpha = 0.005
 
 //equilibrium
 m = uniform(1,0,0)
@@ -27,7 +27,7 @@ relax()
 save(m)
 
 //sinusoidal excitation
-B_ext.setRegion(1, vector(0,0, 1e-3 * sin(2*pi*f*t)))
+B_ext.setRegion(1, vector(0,0, 1e-2 * sin(2*pi*f*t)))
 
 //save states and measurements
 autosave(m, 2e-11)
