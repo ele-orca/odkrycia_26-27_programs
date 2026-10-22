@@ -18,7 +18,7 @@ DefRegion(4, Rect(10e-9, 64e-9).transl(25e-9,0,0))
 //parameters
 Msat = 800e3
 Aex = 13e-12
-alpha = 0.01
+alpha = 0.15
 
 //equilibrium
 m = uniform(1,0,0)
