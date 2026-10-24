@@ -1,1 +1,60 @@
-//magnonic or gate, code also created by chatgpt ()
+//magnonic or gate, code also created by chatgpt (although with documentation it shouln't be that hard to do it yourself)
+//set geom
+SetGridSize(640,256,1)
+SetCellSize(1e-9,1e-9,2e-9)
+
+theta := 18*pi/180
+L := 284e-9
+w := 36e-9
+
+//upper arm
+upper := rect(L,w).RotZ(-theta).transl(-136e-9,44.2e-9,0)
+//lower arm
+lower := rect(L,w).RotZ(theta).transl(-136e-9,-44.2e-9,0)
+
+//output
+out := rect(320e-9,w).transl(160e-9,0,0)
+
+SetGeom(upper.Add(lower).Add(out))
+saveas(geom, "gate_geom")
+
+//sources
+DefRegion(1, rect(24e-9,w).RotZ(-theta).transl(-236e-9,76.8e-9,0))
+
+DefRegion(2, rect(24e-9,w).RotZ(theta).transl(-236e-9,-76.8e-9,0))
+//output
+DefRegion(3, rect(24e-9,w).RotZ(-theta).transl(270e-9,0,0))
+
+//parameters
+f := 5e9
+B0 := 1e-4
+Msat = 800e3
+Aex = 13e-12
+alpha = 0.0001
+
+//equilibrium
+m = uniform(1,0,0)
+B_ext = vector(20e-3,0,0)
+save(regions)
+relax()
+
+//remove edge charges
+BoundaryRegion := 0
+MagLeft := 1
+MagRight := -1
+ext_rmSurfaceCharge(BoundaryRegion, MagLeft, MagRight)
+relax()
+
+//inputs
+inA := 1.0
+inB := 1.0
+
+//magnetic field in source regions
+B_ext.SetRegion(1, vector(20e-3,0, inA*B0*sin(2*pi*f*t)))
+B_ext.SetRegion(2, vector(20e-3,0, inB*B0*sin(2*pi*f*t)))
+
+TableAdd(m.Region(3))
+Tableautosave(1e-11)
+Autosave(m, 5e-11)
+
+run(5e-9)
