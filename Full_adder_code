@@ -17,5 +17,8 @@ Region3 := rect(d1,width).RotZ(theta).transl(x1,-y1,0)
 Region4 := rect(d1,width).RotZ(theta).transl(-x1,y1,0)
 Region5 := rect(d5,width).transl(-0.5*d5-2*x1,0,0)
 Region6 := rect(d3,width).transl(0.5*d3 +2*x1,0,0)
-
-
+Region7 := rect(d2,width).RotZ(theta).transl(-x2,y2,0)
+Region8 := rect(d2,width).RotZ(-theta).transl(-x2,-y2,0)
+Region9 := rect(d2,width).RotZ(-theta).transl(x2,y2,0)
+Region10 := rect(d5,width).transl(-0.5*d5 -2*x2,0,0)
+Region11 := rect(d4,width).transl(0.5*d4 +d3 +2*x1,0,0)
