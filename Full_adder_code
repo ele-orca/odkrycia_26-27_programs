@@ -1,1 +1,21 @@
+//full adder written by me. link to the paper: 
+theta := 18*pi/180
+width := 50e-9
+d1 := 330e-9
+d2 := 880e-9
+d3 := 220e-9
+d4 := 55e-9
+d5 := 55e-9
+x1 := 0.5 *(d1 *sin(theta) + width * cos(theta))
+y1 := 0.5 *(d1*cos(theta) - width*sin(theta))
+x2 := 0.5 *(d2 *sin(theta) + width * cos(theta))
+y2 := 0.5 *(d2*cos(theta) - width*sin(theta))
+
+Region1 := rect(d1,width).RotZ(-theta).transl(-x1,-y1,0)
+Region2 := rect(d1,width).RotZ(-theta).transl(x1,y1,0)
+Region3 := rect(d1,width).RotZ(theta).transl(x1,-y1,0)
+Region4 := rect(d1,width).RotZ(theta).transl(-x1,y1,0)
+Region5 := rect(d5,width).transl(-0.5*d5-2*x1,0,0)
+Region6 := rect(d3,width).transl(0.5*d3 +2*x1,0,0)
+
 
