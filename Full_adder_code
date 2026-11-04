@@ -1,5 +1,5 @@
 //full adder written by me. link to the paper: https://arxiv.org/pdf/2102.08108
-theta := 18*pi/180
+theta := 26*pi/180
 width := 50e-9
 d1 := 330e-9
 d2 := 880e-9
