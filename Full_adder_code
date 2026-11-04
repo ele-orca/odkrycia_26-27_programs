@@ -19,7 +19,8 @@ cellsizey := 2.5e-9
 xmaxsize := 2*x1+d5+d4+10*cellsizex
 ymaxsize := 2*h2 + 10*cellsizey
 setcellsize(cellsizex, cellsizey, 1e-9)
-setgridsize(xmaxsize/cellsizex, ymaxsize/cellsizey, 1)
+//setgridsize(floor(xmaxsize/cellsizex), floor(ymaxsize/cellsizey), 1)
+setgridsize(1024,512,1)
 
 Region1 := rect(d1,width).RotZ(-theta).transl(-x1-deltax,-h1-deltay,0)
 Region2 := rect(d1,width).RotZ(-theta).transl(x1+deltax,h1+deltay,0)
