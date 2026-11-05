@@ -1,9 +1,10 @@
 //full adder written by me. link to the paper: https://arxiv.org/pdf/2102.08108
-theta := 26*pi/180
+//d3 = (d2 - d1) * cos(theta), so if d3 = n * wavelength, then theta ~ 25.84 degrees is a close match
+theta := 25.84*pi/180
 width := 50e-9
 d1 := 330e-9
 d2 := 880e-9
-d3 := 550e-9
+d3 := 495e-9
 d4 := 55e-9
 d5 := 55e-9
 wavelength := 55e-9
@@ -12,7 +13,7 @@ h1 := 0.5 *d1*sin(theta)
 x2 := 0.5 *d2 *cos(theta)
 h2 := 0.5 *d2*sin(theta)
 deltax := -0.5 * width * sin(theta)
-deltay := -0.5*width*cos(theta) + 0.5*width
+deltay := -0.5 * width * cos(theta) + 0.5 * width
 
 cellsizex := 2.5e-9
 cellsizey := 2.5e-9
@@ -33,6 +34,16 @@ Region8 := rect(d2,width).RotZ(-theta).transl(-x2-deltax,-h2-deltay,0)
 Region9 := rect(d2,width).RotZ(-theta).transl(x2+deltax,h2+deltay,0)
 Region10 := rect(d5,width).transl(-0.5*d5 -2*x2-deltax,0,0)
 Region11 := rect(d4,width).transl(0.5*d4 +d3 +2*x1+deltax,0,0)
+
+RegionX := rect(width, width).RotZ(pi/4).transl(0,d1 * sin(theta) - width * sin(theta) + deltay, 0)
+RegionY := rect(width, width).RotZ(pi/4).transl(0,-d1 * sin(theta) + width * sin(theta) - deltay, 0)
+RegionI := rect(width, width).RotZ(pi/4).transl(0,-d2 * sin(theta) + width * sin(theta) - deltay, 0)
+RegionCi:= rect(width, width).RotZ(pi/4).transl(0,d2 * sin(theta) - width * sin(theta) + deltay, 0)
+RegionO := rect(width, width).transl(-d5-2*x1-deltax+0.5*width, 0,0)
+RegionSum := rect(width, width).transl(-d5-2*x2-deltax+0.5*width, 0,0)
+RegionCo:= rect(width, width).transl(d4+d3+2*x1+deltax-0.5*width,0,0)
+
 geometry_full_adder := Region1.Add(Region2).Add(Region3).Add(Region4).Add(Region5).Add(Region6).Add(Region7).Add(Region8).Add(Region9).Add(Region10).Add(Region11)
+
 SetGeom(geometry_full_adder)
 saveas(geom, "adder_geom")
