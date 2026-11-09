@@ -1,17 +1,19 @@
 //full adder written by me. link to the paper: https://arxiv.org/pdf/2102.08108
 //d3 = (d2 - d1) * cos(theta), so if d3 = n * wavelength, then theta ~ 25.84 degrees is a close match
 theta := 25.84*pi/180
-width := 50e-9
-d1 := 330e-9
-d2 := 880e-9
-d3 := 495e-9
-d4 := 55e-9
-d5 := 55e-9
 wavelength := 55e-9
+frequency := 10e9
+width := 50e-9
+d1 := 6 * wavelength
+d2 := 16 * wavelength
+d3 := 9 * wavelength
+d4 := 1 * wavelength
+d5 := 1 * wavelength
 x1 := 0.5 *d1 *cos(theta)
 h1 := 0.5 *d1*sin(theta)
 x2 := 0.5 *d2 *cos(theta)
 h2 := 0.5 *d2*sin(theta)
+sensorwidth := 20e-9
 deltax := -0.5 * width * sin(theta)
 deltay := -0.5 * width * cos(theta) + 0.5 * width
 
@@ -45,5 +47,49 @@ RegionCo:= rect(width, width).transl(d4+d3+2*x1+deltax-0.5*width,0,0)
 
 geometry_full_adder := Region1.Add(Region2).Add(Region3).Add(Region4).Add(Region5).Add(Region6).Add(Region7).Add(Region8).Add(Region9).Add(Region10).Add(Region11)
 
+B0 := 1e-4
+Msat = 1.1e6
+Aex = 18.5e-12
+alpha = 0.004
+Ku1 = 8.3e5
+AnisU = vector(0, 0, 1)
+
 SetGeom(geometry_full_adder)
 saveas(geom, "adder_geom")
+
+m = uniform(0,0,1)
+relax()
+
+phaseX := 0.0
+phaseY := 0.0
+phaseCi:= 0.0
+phaseI := 0.0
+
+DefRegion(1, RegionX)
+DefRegion(2, RegionY)
+DefRegion(3, RegionCi)
+
+DefRegion(4, RegionO)
+DefRegion(5, RegionI)
+
+DefRegion(6, RegionSum)
+DefRegion(7, RegionCo)
+
+signalOx := m.Comp(0).Region(4)
+m0xO := signalOx.Average()
+gain := 1e-2
+
+B_ext.SetRegion(1, vector(B0 * sin(2*pi*frequency*t+phaseX), 0, 0))
+B_ext.SetRegion(2, vector(B0 * sin(2*pi*frequency*t+phaseY), 0, 0))
+B_ext.SetRegion(3, vector(B0 * sin(2*pi*frequency*t+phaseCi), 0, 0))
+B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t+phaseI), 0, 0))
+
+
+TableAdd(m.Region(4))
+TableAdd(m.Region(7))
+TableAdd(m.Region(6))
+TableAdd(m.Region(1))
+Tableautosave(1e-12)
+Autosave(m, 1e-12)
+
+run(2e-9)
