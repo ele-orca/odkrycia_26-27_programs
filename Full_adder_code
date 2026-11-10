@@ -75,20 +75,18 @@ DefRegion(5, RegionI)
 DefRegion(6, RegionSum)
 DefRegion(7, RegionCo)
 
-signalOx := m.Comp(0).Region(4)
-m0xO := signalOx.Average()
-gain := 1e-2
+signalzinO := m.Comp(2).Region(4)
 
 B_ext.SetRegion(1, vector(B0 * sin(2*pi*frequency*t+phaseX), 0, 0))
 B_ext.SetRegion(2, vector(B0 * sin(2*pi*frequency*t+phaseY), 0, 0))
 B_ext.SetRegion(3, vector(B0 * sin(2*pi*frequency*t+phaseCi), 0, 0))
 B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t+phaseI), 0, 0))
 
-
 TableAdd(m.Region(4))
 TableAdd(m.Region(7))
 TableAdd(m.Region(6))
 TableAdd(m.Region(1))
+TableAddVar(sqrt(1- signalzinO.Average() * signalzinO.Average()),"amplitudeO","")
 Tableautosave(1e-12)
 Autosave(m, 1e-12)
 
