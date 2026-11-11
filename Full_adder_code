@@ -1,4 +1,4 @@
-//full adder written by me. link to the paper: https://arxiv.org/pdf/2102.08108
+//full adder written by me with assistance from chatgpt. link to the paper: https://arxiv.org/pdf/2102.08108
 //d3 = (d2 - d1) * cos(theta), so if d3 = n * wavelength, then theta ~ 25.84 degrees is a close match
 theta := 25.84*pi/180
 wavelength := 55e-9
@@ -14,6 +14,7 @@ h1 := 0.5 *d1*sin(theta)
 x2 := 0.5 *d2 *cos(theta)
 h2 := 0.5 *d2*sin(theta)
 sensorwidth := 20e-9
+absorberwidth := 30e-9
 deltax := -0.5 * width * sin(theta)
 deltay := -0.5 * width * cos(theta) + 0.5 * width
 
@@ -22,7 +23,6 @@ cellsizey := 2.5e-9
 xmaxsize := 2*x1+d5+d4+10*cellsizex
 ymaxsize := 2*h2 + 10*cellsizey
 setcellsize(cellsizex, cellsizey, 1e-9)
-//setgridsize(floor(xmaxsize/cellsizex), floor(ymaxsize/cellsizey), 1)
 setgridsize(1024,512,1)
 
 Region1 := rect(d1,width).RotZ(-theta).transl(-x1-deltax,-h1-deltay,0)
@@ -36,16 +36,40 @@ Region8 := rect(d2,width).RotZ(-theta).transl(-x2-deltax,-h2-deltay,0)
 Region9 := rect(d2,width).RotZ(-theta).transl(x2+deltax,h2+deltay,0)
 Region10 := rect(d5,width).transl(-0.5*d5 -2*x2-deltax,0,0)
 Region11 := rect(d4,width).transl(0.5*d4 +d3 +2*x1+deltax,0,0)
+InnerWaveguideGeometry := Region1.Add(Region2).Add(Region3).Add(Region4).Add(Region5).Add(Region6)
+OuterWaveguideGeometry := Region7.Add(Region8).Add(Region9).Add(Region10).Add(Region11)
 
 RegionX := rect(width, width).RotZ(pi/4).transl(0,d1 * sin(theta) - width * sin(theta) + deltay, 0)
 RegionY := rect(width, width).RotZ(pi/4).transl(0,-d1 * sin(theta) + width * sin(theta) - deltay, 0)
 RegionI := rect(width, width).RotZ(pi/4).transl(0,-d2 * sin(theta) + width * sin(theta) - deltay, 0)
 RegionCi:= rect(width, width).RotZ(pi/4).transl(0,d2 * sin(theta) - width * sin(theta) + deltay, 0)
-RegionO := rect(width, width).transl(-d5-2*x1-deltax+0.5*width, 0,0)
-RegionSum := rect(width, width).transl(-d5-2*x2-deltax+0.5*width, 0,0)
-RegionCo:= rect(width, width).transl(d4+d3+2*x1+deltax-0.5*width,0,0)
+RegionO := rect(sensorwidth, width).transl(-d5-2*x1-deltax+0.5*sensorwidth, 0,0)
+RegionSum := rect(sensorwidth, width).transl(-d5-2*x2-deltax+0.5*sensorwidth, 0,0)
+RegionCo:= rect(sensorwidth, width).transl(d4+d3+2*x1+deltax-0.5*sensorwidth,0,0)
+Input_geometry := RegionX.Add(RegionY).Add(RegionI).Add(RegionCi)
+Output_geometry:= RegionO.Add(RegionSum).Add(RegionCo)
 
-geometry_full_adder := Region1.Add(Region2).Add(Region3).Add(Region4).Add(Region5).Add(Region6).Add(Region7).Add(Region8).Add(Region9).Add(Region10).Add(Region11)
+Absorber1o:= rect(absorberwidth,width).transl(-d5-2*x1-deltax-0.5*absorberwidth,0,0)
+Absorber2o:= rect(absorberwidth,width).transl(-d5-2*x1-deltax-1.5*absorberwidth,0,0)
+Absorber3o:= rect(absorberwidth,width).transl(-d5-2*x1-deltax-2.5*absorberwidth,0,0)
+Absorber4o:= rect(absorberwidth,width).transl(-d5-2*x1-deltax-3.5*absorberwidth,0,0)
+AbsorberO_geom := Absorber1o.Add(Absorber2o).Add(Absorber3o).Add(Absorber4o)
+
+Absorber1s:= rect(absorberwidth,width).transl(-d5-2*x2-deltax-0.5*absorberwidth,0,0)
+Absorber2s:= rect(absorberwidth,width).transl(-d5-2*x2-deltax-1.5*absorberwidth,0,0)
+Absorber3s:= rect(absorberwidth,width).transl(-d5-2*x2-deltax-2.5*absorberwidth,0,0)
+Absorber4s:= rect(absorberwidth,width).transl(-d5-2*x2-deltax-3.5*absorberwidth,0,0)
+AbsorberS_geom := Absorber1s.Add(Absorber2s).Add(Absorber3s).Add(Absorber4s)
+
+Absorber1co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+0.5*absorberwidth,0,0)
+Absorber2co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+1.5*absorberwidth,0,0)
+Absorber3co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+2.5*absorberwidth,0,0)
+Absorber4co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+3.5*absorberwidth,0,0)
+AbsorberCo_geom := Absorber1co.Add(Absorber2co).Add(Absorber3co).Add(Absorber4co)
+
+Absorber_geom := AbsorberS_geom.Add(AbsorberO_geom).Add(AbsorberCo_geom)
+
+geometry_full_adder := InnerWaveguideGeometry.Add(OuterWaveguideGeometry).Add(Absorber_geom)
 
 B0 := 1e-4
 Msat = 1.1e6
@@ -56,6 +80,40 @@ AnisU = vector(0, 0, 1)
 
 SetGeom(geometry_full_adder)
 saveas(geom, "adder_geom")
+
+DefRegion(8, Absorber1o)
+DefRegion(9, Absorber2o)
+DefRegion(10, Absorber3o)
+DefRegion(11, Absorber4o)
+
+DefRegion(12, Absorber1s)
+DefRegion(13, Absorber2s)
+DefRegion(14, Absorber3s)
+DefRegion(15, Absorber4s)
+
+DefRegion(16, Absorber1co)
+DefRegion(17, Absorber2co)
+DefRegion(18, Absorber3co)
+DefRegion(19, Absorber4co)
+
+alpha_0 := 0.004
+alpha_max := 0.5
+
+delta_alpha := alpha_max - alpha_0
+alpha.SetRegion(8, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
+alpha.SetRegion(9, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
+alpha.SetRegion(10, alpha_0 + (alpha_max - alpha_0) * Pow(0.75,2))
+alpha.SetRegion(11, alpha_max)
+
+alpha.SetRegion(12, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
+alpha.SetRegion(13, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
+alpha.SetRegion(14, alpha_0 + (alpha_max - alpha_0) * Pow(0.75,2))
+alpha.SetRegion(15, alpha_max)
+
+alpha.SetRegion(16, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
+alpha.SetRegion(17, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
+alpha.SetRegion(18, alpha_0 + (alpha_max - alpha_0) * Pow(0.75,2))
+alpha.SetRegion(19, alpha_max)
 
 m = uniform(0,0,1)
 relax()
@@ -82,11 +140,22 @@ B_ext.SetRegion(2, vector(B0 * sin(2*pi*frequency*t+phaseY), 0, 0))
 B_ext.SetRegion(3, vector(B0 * sin(2*pi*frequency*t+phaseCi), 0, 0))
 B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t+phaseI), 0, 0))
 
+sensorsize := (sensorwidth * width) / (cellsizex * cellsizey)
+
+mxO := m.Comp(0).Region(4)
+myO := m.Comp(1).Region(4)
+mxS := m.Comp(0).Region(6)
+myS := m.Comp(1).Region(6)
+mxCo:= m.Comp(0).Region(7)
+myCo:= m.Comp(1).Region(7)
+
 TableAdd(m.Region(4))
 TableAdd(m.Region(7))
 TableAdd(m.Region(6))
 TableAdd(m.Region(1))
-TableAddVar(sqrt(1- signalzinO.Average() * signalzinO.Average()),"amplitudeO","")
+TableAddVar(sqrt((Sum(Mul(mxO,myO)) + Sum(Mul(myO,myO)))/sensorsize),"amplitudeO","")
+TableAddVar(sqrt((Sum(Mul(mxS,myS)) + Sum(Mul(myS,myS)))/sensorsize),"amplitudeO","")
+TableAddVar(sqrt((Sum(Mul(mxCo,myCo)) + Sum(Mul(myCo,myCo)))/sensorsize),"amplitudeO","")
 Tableautosave(1e-12)
 Autosave(m, 1e-12)
 
