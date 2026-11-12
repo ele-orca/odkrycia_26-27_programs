@@ -1,0 +1,76 @@
+//just some test code
+SetGridSize(64,3,1)
+SetCellSize(1e-9,1e-9,1e-9)
+
+m = uniform(0,0,1)
+
+Source := rect(4e-9,3e-9).transl(14e-9,0,0)
+Region2 := rect(64e-9,3e-9)
+Sensor := rect(2e-9,3e-9).transl(-15e-9,0,0)
+Region4 := rect(4e-9,3e-9).transl(-18e-9,0,0)
+Region5 := rect(4e-9,3e-9).transl(-22e-9,0,0)
+Region6 := rect(4e-9,3e-9).transl(-26e-9,0,0)
+Region7 := rect(4e-9,3e-9).transl(-30e-9,0,0)
+Region8 := rect(4e-9,3e-9).transl(18e-9,0,0)
+Region9 := rect(4e-9,3e-9).transl(22e-9,0,0)
+Region10:= rect(4e-9,3e-9).transl(26e-9,0,0)
+Region11:= rect(4e-9,3e-9).transl(30e-9,0,0)
+
+DefRegion(2, Region2)
+DefRegion(1, Source)
+DefRegion(3, Sensor)
+DefRegion(4, Region4)
+DefRegion(5, Region5)
+DefRegion(6, Region6)
+DefRegion(7, Region7)
+DefRegion(8, Region8)
+DefRegion(9, Region9)
+DefRegion(10, Region10)
+DefRegion(11, Region11)
+
+SetGeom(Region2)
+
+frequency := 5e9
+B0 := 0.1e-3
+Msat = 1.1e6
+Aex =18.5e-12
+alpha = 0.004
+Bbias := 52e-3
+Ku1 = 8.3e5
+AnisU = vector(0, 0, 1)
+
+alpha_0 := 0.004
+alpha_max := 0.5
+delalpha := alpha_max - alpha_0
+
+alpha.SetRegion(4, alpha_0 + delalpha * Pow(0.25,2))
+alpha.SetRegion(5, alpha_0 + delalpha * Pow(0.5,2))
+alpha.SetRegion(6, alpha_0 + delalpha * Pow(0.75,2))
+alpha.SetRegion(7, alpha_0 + delalpha)
+alpha.SetRegion(8, alpha_0 + delalpha * Pow(0.25,2))
+alpha.SetRegion(9, alpha_0 + delalpha * Pow(0.5,2))
+alpha.SetRegion(10, alpha_0 + delalpha * Pow(0.75,2))
+alpha.SetRegion(11, alpha_0 + delalpha)
+
+B_ext = vector(0,0,Bbias)
+relax()
+
+mz3 := m.Comp(2).Region(3)
+
+B_ext.SetRegion(1,vector(B0*sin(2*pi*frequency*t),0,Bbias))
+
+MaxDt = 1e-12
+
+mx3 := m.Comp(0).Region(3)
+my3 := m.Comp(1).Region(3)
+
+mx3sq := Mul(mx3,mx3)
+my3sq := Mul(my3,my3)
+
+TableAdd(m.Region(3))
+TableAddVar(sqrt((Sum(Mul(mx3, mx3))+Sum(Mul(my3,my3)))/6.0), "amplitude", "")
+
+Tableautosave(1e-12)
+Autosave(m, 1e-12)
+
+run(8e-10)
