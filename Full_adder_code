@@ -1,9 +1,16 @@
 //full adder written by me with assistance from chatgpt. link to the paper: https://arxiv.org/pdf/2102.08108
 //d3 = (d2 - d1) * cos(theta), so if d3 = n * wavelength, then theta ~ 25.84 degrees is a close match
+B0 := 1e-4
+Msat = 1.1e6
+Aex = 18.5e-12
+alpha = 0.004
+Ku1 = 8.3e5
+AnisU = vector(0, 0, 1)
+
 theta := 25.84*pi/180
-wavelength := 55e-9
+wavelength := 80.47818e-9
 frequency := 10e9
-width := 50e-9
+width := 0.5 * wavelength
 d1 := 6 * wavelength
 d2 := 16 * wavelength
 d3 := 9 * wavelength
@@ -13,8 +20,8 @@ x1 := 0.5 *d1 *cos(theta)
 h1 := 0.5 *d1*sin(theta)
 x2 := 0.5 *d2 *cos(theta)
 h2 := 0.5 *d2*sin(theta)
-sensorwidth := 20e-9
-absorberwidth := 30e-9
+sensorwidth := 0.3 * wavelength
+absorberwidth := 0.4 * wavelength
 deltax := -0.5 * width * sin(theta)
 deltay := -0.5 * width * cos(theta) + 0.5 * width
 
@@ -23,7 +30,7 @@ cellsizey := 2.5e-9
 xmaxsize := 2*x1+d5+d4+10*cellsizex
 ymaxsize := 2*h2 + 10*cellsizey
 setcellsize(cellsizex, cellsizey, 1e-9)
-setgridsize(1024,512,1)
+setgridsize(1536,768,1)
 
 Region1 := rect(d1,width).RotZ(-theta).transl(-x1-deltax,-h1-deltay,0)
 Region2 := rect(d1,width).RotZ(-theta).transl(x1+deltax,h1+deltay,0)
@@ -70,13 +77,6 @@ AbsorberCo_geom := Absorber1co.Add(Absorber2co).Add(Absorber3co).Add(Absorber4co
 Absorber_geom := AbsorberS_geom.Add(AbsorberO_geom).Add(AbsorberCo_geom)
 
 geometry_full_adder := InnerWaveguideGeometry.Add(OuterWaveguideGeometry).Add(Absorber_geom)
-
-B0 := 1e-4
-Msat = 1.1e6
-Aex = 18.5e-12
-alpha = 0.004
-Ku1 = 8.3e5
-AnisU = vector(0, 0, 1)
 
 SetGeom(geometry_full_adder)
 saveas(geom, "adder_geom")
@@ -135,10 +135,9 @@ DefRegion(7, RegionCo)
 
 signalzinO := m.Comp(2).Region(4)
 
-B_ext.SetRegion(1, vector(B0 * sin(2*pi*frequency*t+phaseX), 0, 0))
-B_ext.SetRegion(2, vector(B0 * sin(2*pi*frequency*t+phaseY), 0, 0))
-B_ext.SetRegion(3, vector(B0 * sin(2*pi*frequency*t+phaseCi), 0, 0))
-B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t+phaseI), 0, 0))
+B_ext.SetRegion(1, vector(B0 * sin(2*pi*frequency*t+phaseX), B0 * cos(2*pi*frequency*t+phaseX), 0))
+B_ext.SetRegion(2, vector(B0 * sin(2*pi*frequency*t+phaseY), B0 * cos(2*pi*frequency*t+phaseY), 0))
+B_ext.SetRegion(3, vector(B0 * sin(2*pi*frequency*t+phaseCi), B0 * cos(2*pi*frequency*t+phaseCi), 0))
 
 sensorsize := (sensorwidth * width) / (cellsizex * cellsizey)
 
@@ -148,14 +147,17 @@ mxS := m.Comp(0).Region(6)
 myS := m.Comp(1).Region(6)
 mxCo:= m.Comp(0).Region(7)
 myCo:= m.Comp(1).Region(7)
+thresholdOI := 0.5
+
+B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t) * (2*heaviside(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize) - thresholdOI) - 1), B0 * cos(2*pi*frequency*t) * (2*heaviside(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize) - thresholdOI) - 1),0))
 
 TableAdd(m.Region(4))
 TableAdd(m.Region(7))
 TableAdd(m.Region(6))
 TableAdd(m.Region(1))
-TableAddVar(sqrt((Sum(Mul(mxO,myO)) + Sum(Mul(myO,myO)))/sensorsize),"amplitudeO","")
-TableAddVar(sqrt((Sum(Mul(mxS,myS)) + Sum(Mul(myS,myS)))/sensorsize),"amplitudeO","")
-TableAddVar(sqrt((Sum(Mul(mxCo,myCo)) + Sum(Mul(myCo,myCo)))/sensorsize),"amplitudeO","")
+TableAddVar(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize),"amplitudeO","")
+TableAddVar(sqrt((Sum(Mul(mxS,mxS)) + Sum(Mul(myS,myS)))/sensorsize),"amplitudeS","")
+TableAddVar(sqrt((Sum(Mul(mxCo,mxCo)) + Sum(Mul(myCo,myCo)))/sensorsize),"amplitudeCo","")
 Tableautosave(1e-12)
 Autosave(m, 1e-12)
 
