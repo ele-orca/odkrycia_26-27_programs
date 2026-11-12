@@ -133,8 +133,6 @@ DefRegion(5, RegionI)
 DefRegion(6, RegionSum)
 DefRegion(7, RegionCo)
 
-signalzinO := m.Comp(2).Region(4)
-
 B_ext.SetRegion(1, vector(B0 * sin(2*pi*frequency*t+phaseX), B0 * cos(2*pi*frequency*t+phaseX), 0))
 B_ext.SetRegion(2, vector(B0 * sin(2*pi*frequency*t+phaseY), B0 * cos(2*pi*frequency*t+phaseY), 0))
 B_ext.SetRegion(3, vector(B0 * sin(2*pi*frequency*t+phaseCi), B0 * cos(2*pi*frequency*t+phaseCi), 0))
