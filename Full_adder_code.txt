@@ -6,10 +6,10 @@ Aex = 18.5e-12
 alpha = 0.004
 Ku1 = 8.3e5
 AnisU = vector(0, 0, 1)
-eta := 0.5
+eta := 1.0
 etaamp := 1/(sqrt(1+eta*eta))
 alpha_0 := 0.004
-alpha_max := 0.5
+alpha_max := 0.75
 
 theta := 25.84*pi/180
 wavelength := 80.47818e-9
@@ -35,6 +35,11 @@ xmaxsize := 2*x1+d5+d4+10*cellsizex
 ymaxsize := 2*h2 + 10*cellsizey
 setcellsize(cellsizex, cellsizey, 1e-9)
 setgridsize(1536,768,1)
+
+phaseX := pi
+phaseY := 0.0
+phaseCi:= 0.0
+phaseI := 0.0
 
 Region1 := rect(d1,width).RotZ(-theta).transl(-x1-deltax,-h1-deltay,0)
 Region2 := rect(d1,width).RotZ(-theta).transl(x1+deltax,h1+deltay,0)
@@ -119,11 +124,6 @@ alpha.SetRegion(19, alpha_max)
 m = uniform(0,0,1)
 relax()
 
-phaseX := pi
-phaseY := 0.0
-phaseCi:= 0.0
-phaseI := 0.0
-
 DefRegion(1, RegionX)
 DefRegion(2, RegionY)
 DefRegion(3, RegionCi)
@@ -139,6 +139,7 @@ B_ext.SetRegion(2, vector(etaamp * B0 * sin(2*pi*frequency*t+phaseY), -eta * eta
 B_ext.SetRegion(3, vector(etaamp * B0 * sin(2*pi*frequency*t+phaseCi), -eta * etaamp * B0 * cos(2*pi*frequency*t+phaseCi), 0))
 
 sensorsize := (sensorwidth * width) / (cellsizex * cellsizey)
+inputsize := (width*width) / (cellsizex * cellsizey)
 
 mxO := m.Comp(0).Region(4)
 myO := m.Comp(1).Region(4)
@@ -163,9 +164,9 @@ TableAdd(m.Region(1))
 TableAddVar(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize),"amplitudeO","")
 TableAddVar(sqrt((Sum(Mul(mxS,mxS)) + Sum(Mul(myS,myS)))/sensorsize),"amplitudeS","")
 TableAddVar(sqrt((Sum(Mul(mxCo,mxCo)) + Sum(Mul(myCo,myCo)))/sensorsize),"amplitudeCo","")
-TableAddVar(sqrt((Sum(Mul(mxX,mxX)) + Sum(Mul(myX,myX)))/sensorsize),"amplitudeX","")
-TableAddVar(sqrt((Sum(Mul(mxY,mxY)) + Sum(Mul(myY,myY)))/sensorsize),"amplitudeY","")
-TableAddVar(sqrt((Sum(Mul(mxCi,mxCi)) + Sum(Mul(myCi,myCi)))/sensorsize),"amplitudeCi","")
+TableAddVar(sqrt((Sum(Mul(mxX,mxX)) + Sum(Mul(myX,myX)))/inputsize),"amplitudeX","")
+TableAddVar(sqrt((Sum(Mul(mxY,mxY)) + Sum(Mul(myY,myY)))/inputsize),"amplitudeY","")
+TableAddVar(sqrt((Sum(Mul(mxCi,mxCi)) + Sum(Mul(myCi,myCi)))/inputsize),"amplitudeCi","")
 Tableautosave(1e-12)
 Autosave(m, 1e-12)
 

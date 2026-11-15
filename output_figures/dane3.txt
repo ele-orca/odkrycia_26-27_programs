@@ -4,10 +4,11 @@ Aex = 18.5e-12
 alpha = 0.004
 Ku1 = 8.3e5
 AnisU = vector(0, 0, 1)
-eta := 1.5
+eta := 0.75
 etaamp := 1/(sqrt(1+eta*eta))
 alpha_0 := 0.004
-alpha_max := 0.5
+alpha_max := 0.75
+
 theta := 25.84*pi/180
 wavelength := 80.47818e-9
 frequency := 10e9
@@ -25,15 +26,17 @@ sensorwidth := 0.1 * wavelength
 absorberwidth := 0.75 * wavelength
 deltax := -0.5 * width * sin(theta)
 deltay := -0.5 * width * cos(theta) + 0.5 * width
+
 cellsizex := 2.5e-9
 cellsizey := 2.5e-9
 xmaxsize := 2*x1+d5+d4+10*cellsizex
 ymaxsize := 2*h2 + 10*cellsizey
 setcellsize(cellsizex, cellsizey, 1e-9)
 setgridsize(1536,768,1)
-time = 3e-9
 
 phaseX := pi
 phaseY := 0.0
 phaseCi:= 0.0
 phaseI := 0.0
+
+time = 3e-9
