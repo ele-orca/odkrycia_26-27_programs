@@ -6,14 +6,14 @@ Aex = 18.5e-12
 alpha = 0.004
 Ku1 = 8.3e5
 AnisU = vector(0, 0, 1)
-eta := 1.0
+eta := 0.5
 etaamp := 1/(sqrt(1+eta*eta))
 alpha_0 := 0.004
 alpha_max := 0.75
 
 theta := 25.84*pi/180
 wavelength := 80.47818e-9
-frequency := 10e9
+frequency := 9e9
 width := 0.5 * wavelength
 d1 := 6 * wavelength
 d2 := 16 * wavelength
@@ -36,9 +36,23 @@ ymaxsize := 2*h2 + 10*cellsizey
 setcellsize(cellsizex, cellsizey, 1e-9)
 setgridsize(1536,768,1)
 
-phaseX := pi
-phaseY := 0.0
-phaseCi:= 0.0
+thresholdOI := 0.01
+inX := 0
+inY := 0
+inCi := 0
+phaseX := 0.0
+phaseY :=0.0
+phaseCi := 0.0
+
+if inX == 1{
+	phaseX = pi
+}
+if inY == 1{
+	phaseY = pi
+}
+if inCi == 1{
+	phaseCi = pi
+}
 phaseI := 0.0
 
 Region1 := rect(d1,width).RotZ(-theta).transl(-x1-deltax,-h1-deltay,0)
@@ -153,7 +167,6 @@ mxY:= m.Comp(0).Region(2)
 myY:= m.Comp(1).Region(2)
 mxCi:= m.Comp(0).Region(3)
 myCi:= m.Comp(1).Region(3)
-thresholdOI := 0.5
 
 B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t) * (2*heaviside(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize) - thresholdOI) - 1), -B0 * cos(2*pi*frequency*t) * (2*heaviside(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize) - thresholdOI) - 1),0))
 
@@ -171,6 +184,3 @@ Tableautosave(1e-12)
 Autosave(m, 1e-12)
 
 run(3e-9)
-
-//(X,Y,Ci)
-//state (0,0,0) ampO = 0.02, ampCo = 0.15, ampS = 0.09, eta = 0.5
