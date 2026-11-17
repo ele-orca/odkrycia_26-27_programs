@@ -207,8 +207,6 @@ def compute_adder(name, frequency, wavelength, eta, thresholdOI, inX, inY, inCi)
     myY:= m.Comp(1).Region(2)
     mxCi:= m.Comp(0).Region(3)
     myCi:= m.Comp(1).Region(3)
-    mxCo := m.Comp(0).Region(7)
-    myCo := m.Comp(1).Region(7)
     
     B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t) * (2*heaviside(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize) - thresholdOI) - 1), -B0 * cos(2*pi*frequency*t) * (2*heaviside(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize) - thresholdOI) - 1),0))
 
@@ -241,7 +239,7 @@ inX = 1
 inY = 1
 inCi = 0
 
-table_adder = compute_adder("mine_full_adder", frequency, wavelength, eta, thresholdOI, inX, inY, inCi)
+table_adder = compute_adder("Full_adder_final", frequency, wavelength, eta, thresholdOI, inX, inY, inCi)
 
 print(table_adder)
 
