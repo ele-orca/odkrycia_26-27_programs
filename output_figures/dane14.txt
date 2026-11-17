@@ -35,7 +35,7 @@ setcellsize(cellsizex, cellsizey, 1e-9)
 setgridsize(1536,768,1)
 
 thresholdOI := 0.5
-inX := 0
+inX := 1
 inY := 0
 inCi := 0
 
