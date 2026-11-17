@@ -255,3 +255,5 @@ plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeCi"], label="Carry
 plt.xlabel("Time (ns)")
 plt.ylabel("Amplitude")
 plt.legend()
+
+plt.show()
