@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-
 def run_mumax3(script, name, verbose=False):
     from subprocess import run, PIPE, STDOUT
     from os import path
@@ -19,7 +18,8 @@ def run_mumax3(script, name, verbose=False):
         print(p.stdout.decode('UTF-8'))
 
     if path.exists(outputdir + "/table.txt"):
-        table = read_mumax3_table(outputdir + "/table.txt")
+        table = read_mumax3_table_text(outputdir + "/table.txt")
+
     else:
         table = None
 
@@ -27,6 +27,10 @@ def run_mumax3(script, name, verbose=False):
 
     return table  #, fields
 
+def read_mumax3_table_text(filename):
+    table_file = open(filename, "r")
+    tabletext = table_file.read()
+    return tabletext
 
 def read_mumax3_table(filename):
     """Puts the mumax3 output table in a pandas dataframe"""
@@ -231,29 +235,58 @@ def compute_adder(name, frequency, wavelength, eta, thresholdOI, inX, inY, inCi)
     return table
 
 
+#(X, Y, Ci)
+
+def write_to_folder(name, folder_name, folder_name_out):
+    input_path = "./" + folder_name + ".out" + r"/table.txt"
+    input_file = open(input_path, "r")
+    table = input_file.read()
+    output_path = "./" + folder_name + ".tables/" + folder_name_out + "/" + name + ".txt"
+    output_file = open(output_path, "w")
+    output_file.write(table)
+
+def write_table_to_folder(table, folder_name, folder_name_out, name):
+    output_path = "./" + folder_name + ".tables/" + name + ".txt"
+    output_file = open(output_path, "w")
+    output_file.write(table)
+
+def run_simulation(folder_name, folder_name_out, frequency, wavelength, eta, thresholdOI):
+    table000 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI,0,0,0)
+    write_table_to_folder(table000, folder_name, folder_name_out, "table000")
+    table100 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 0, 0)
+    write_table_to_folder(table100, folder_name, folder_name_out, "table100")
+    table110 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 1, 0)
+    write_table_to_folder(table110, folder_name, folder_name_out, "table110")
+    table001 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 0, 0, 1)
+    write_table_to_folder(table001, folder_name, folder_name_out, "table001")
+    table101 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 0, 1)
+    write_table_to_folder(table101, folder_name, folder_name_out, "table101")
+    table111 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 1, 1)
+    write_table_to_folder(table111, folder_name, folder_name_out, "table111")
+
+
 frequency = 9e9
 wavelength = 80.4781e-9
 eta = 0.5
 thresholdOI = 0.01
-inX = 1
-inY = 1
-inCi = 0
 
-table_adder = compute_adder("Full_adder_final", frequency, wavelength, eta, thresholdOI, inX, inY, inCi)
+run_simulation("Full_adder_final", "", frequency, wavelength, eta, thresholdOI)
 
-print(table_adder)
 
-plt.figure()
 
-nanosecond = 1e-9
-plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeO"], label="O")
-plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeS"], label="Sum")
-plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeX"], label="X")
-plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeY"], label="Y")
-plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeCi"], label="Carry-In")
+#print(table_adder)
 
-plt.xlabel("Time (ns)")
-plt.ylabel("Amplitude")
-plt.legend()
+#plt.figure()
 
-plt.show()
+#nanosecond = 1e-9
+#plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeO"], label="O")
+#plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeS"], label="Sum")
+#plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeX"], label="X")
+#plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeY"], label="Y")
+#plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeCi"], label="Carry-In")
+
+#plt.xlabel("Time (ns)")
+#plt.ylabel("Amplitude")
+#plt.legend()
+
+#plt.show()
