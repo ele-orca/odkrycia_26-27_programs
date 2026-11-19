@@ -59,7 +59,7 @@ def compute_adder(name, frequency, wavelength, eta, thresholdOI, inX, inY, inCi)
     theta := 25.84*pi/180
     wavelength := {wavelength}
     frequency := {frequency}
-    width := 0.5 * wavelength
+    width := 0.75 * wavelength
     d1 := 6 * wavelength
     d2 := 16 * wavelength
     d3 := 9 * wavelength
@@ -272,7 +272,7 @@ wavelength = 80.4781e-9
 eta = 0.5
 thresholdOI = 0.01
 
-run_simulation("Full_adder_final", "", frequency, wavelength, eta, thresholdOI)
+run_simulation("Full_adder_final", frequency, wavelength, eta, thresholdOI)
 
 
 
