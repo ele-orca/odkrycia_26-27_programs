@@ -245,24 +245,26 @@ def write_to_folder(name, folder_name, folder_name_out):
     output_file = open(output_path, "w")
     output_file.write(table)
 
-def write_table_to_folder(table, folder_name, folder_name_out, name):
+
+def write_table_to_folder(table, folder_name, name):
     output_path = "./" + folder_name + ".tables/" + name + ".txt"
     output_file = open(output_path, "w")
     output_file.write(table)
 
-def run_simulation(folder_name, folder_name_out, frequency, wavelength, eta, thresholdOI):
+
+def run_simulation(folder_name, frequency, wavelength, eta, thresholdOI):
     table000 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI,0,0,0)
-    write_table_to_folder(table000, folder_name, folder_name_out, "table000")
+    write_table_to_folder(table000, folder_name, "table000")
     table100 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 0, 0)
-    write_table_to_folder(table100, folder_name, folder_name_out, "table100")
+    write_table_to_folder(table100, folder_name, "table100")
     table110 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 1, 0)
-    write_table_to_folder(table110, folder_name, folder_name_out, "table110")
+    write_table_to_folder(table110, folder_name, "table110")
     table001 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 0, 0, 1)
-    write_table_to_folder(table001, folder_name, folder_name_out, "table001")
+    write_table_to_folder(table001, folder_name, "table001")
     table101 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 0, 1)
-    write_table_to_folder(table101, folder_name, folder_name_out, "table101")
+    write_table_to_folder(table101, folder_name, "table101")
     table111 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 1, 1)
-    write_table_to_folder(table111, folder_name, folder_name_out, "table111")
+    write_table_to_folder(table111, folder_name, "table111")
 
 
 frequency = 9e9
