@@ -37,8 +37,8 @@ setcellsize(cellsizex, cellsizey, 1e-9)
 setgridsize(1536,768,1)
 
 thresholdOI := 0.01
-inX := 0
-inY := 0
+inX := 1
+inY := 1
 inCi := 0
 phaseX := 0.0
 phaseY :=0.0
@@ -138,6 +138,8 @@ alpha.SetRegion(19, alpha_max)
 m = uniform(0,0,1)
 relax()
 
+saveas(m, "m_start")
+
 DefRegion(1, RegionX)
 DefRegion(2, RegionY)
 DefRegion(3, RegionCi)
@@ -168,7 +170,9 @@ myY:= m.Comp(1).Region(2)
 mxCi:= m.Comp(0).Region(3)
 myCi:= m.Comp(1).Region(3)
 
-B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t) * (2*heaviside(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize) - thresholdOI) - 1), -B0 * cos(2*pi*frequency*t) * (2*heaviside(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize) - thresholdOI) - 1),0))
+
+
+B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t) * (2*heaviside(sqrt(Sum(mxO)/sensorsize * Sum(mxO)/sensorsize + Sum(myO)/sensorsize * Sum(myO)/sensorsize) - thresholdOI) - 1), -B0 * cos(2*pi*frequency*t) * (2*heaviside(sqrt(Sum(mxO)/sensorsize * Sum(mxO)/sensorsize + Sum(myO)/sensorsize * Sum(myO)/sensorsize) - thresholdOI) - 1),0))
 
 TableAdd(m.Region(4))
 TableAdd(m.Region(7))
@@ -176,11 +180,17 @@ TableAdd(m.Region(6))
 TableAdd(m.Region(1))
 TableAddVar(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize),"amplitudeO","")
 TableAddVar(sqrt((Sum(Mul(mxS,mxS)) + Sum(Mul(myS,myS)))/sensorsize),"amplitudeS","")
-TableAddVar(sqrt((Sum(Mul(mxCo,mxCo)) + Sum(Mul(myCo,myCo)))/sensorsize),"amplitudeCo","")
 TableAddVar(sqrt((Sum(Mul(mxX,mxX)) + Sum(Mul(myX,myX)))/inputsize),"amplitudeX","")
 TableAddVar(sqrt((Sum(Mul(mxY,mxY)) + Sum(Mul(myY,myY)))/inputsize),"amplitudeY","")
 TableAddVar(sqrt((Sum(Mul(mxCi,mxCi)) + Sum(Mul(myCi,myCi)))/inputsize),"amplitudeCi","")
+TableAddVar(Sum(mxCo)/sensorsize, "mxCo", "")
+TableAddVar(Sum(myCo)/sensorsize, "myCo", "")
+TableAddVar(sqrt(Sum(mxO)/sensorsize * Sum(mxO)/sensorsize + Sum(myO)/sensorsize * Sum(myO)/sensorsize), "ampOcoh", "")
+TableAddVar(sqrt(Sum(mxS)/sensorsize * Sum(mxS)/sensorsize + Sum(myS)/sensorsize * Sum(myS)/sensorsize), "ampScoh", "")
+TableAddVar(sqrt(Sum(mxX)/inputsize * Sum(mxX)/inputsize + Sum(myX)/inputsize * Sum(myX)/inputsize), "ampXcoh", "")
+TableAddVar(sqrt(Sum(mxY)/inputsize * Sum(mxY)/inputsize + Sum(myY)/inputsize * Sum(myY)/inputsize), "ampYcoh", "")
+TableAddVar(sqrt(Sum(mxCi)/inputsize * Sum(mxCi)/inputsize + Sum(myCi)/inputsize * Sum(myCi)/inputsize), "ampCicoh", "")
 Tableautosave(1e-12)
-Autosave(m, 1e-12)
+//Autosave(m, 1e-12)
 
-run(3e-9)
+run(4e-9)
