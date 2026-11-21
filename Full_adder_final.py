@@ -295,7 +295,7 @@ def plot_and_save(out_folder, table_number, sim_number, frequency, eta):
 def save_data(folder_name, sim_number):
     file = open("./" + folder_name + ".out/data.txt", "r")
     data = file.read()
-    out_file = open("./" + folder_name + ".tables/sim" + sim_number + "/data.txt")
+    out_file = open("./" + folder_name + ".tables/sim" + sim_number + "/data.txt", "w")
     out_file.write(data)
 
 
