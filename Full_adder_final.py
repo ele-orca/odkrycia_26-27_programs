@@ -1,6 +1,8 @@
+#more updates coming soon...
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+
 
 def run_mumax3(script, name, verbose=False):
     from subprocess import run, PIPE, STDOUT
@@ -27,10 +29,12 @@ def run_mumax3(script, name, verbose=False):
 
     return table  #, fields
 
+
 def read_mumax3_table_text(filename):
     table_file = open(filename, "r")
     tabletext = table_file.read()
     return tabletext
+
 
 def read_mumax3_table(filename):
     """Puts the mumax3 output table in a pandas dataframe"""
@@ -223,14 +227,17 @@ def compute_adder(name, frequency, wavelength, eta, thresholdOI, inX, inY, inCi)
     TableAddVar(sqrt((Sum(Mul(mxX,mxX)) + Sum(Mul(myX,myX)))/inputsize),"amplitudeX","")
     TableAddVar(sqrt((Sum(Mul(mxY,mxY)) + Sum(Mul(myY,myY)))/inputsize),"amplitudeY","")
     TableAddVar(sqrt((Sum(Mul(mxCi,mxCi)) + Sum(Mul(myCi,myCi)))/inputsize),"amplitudeCi","")
-    TableAddVar(Sum(mxCo)/sensorsize, "mxCo", "")
-    TableAddVar(Sum(myCo)/sensorsize, "myCo", "")
-    Tableautosave(1e-12)
-    //Autosave(m, 1e-12)
+TableAddVar(Sum(mxCo)/sensorsize, "mxCo", "")
+TableAddVar(Sum(myCo)/sensorsize, "myCo", "")
+Tableautosave(1e-12)
+//Autosave(m, 1e-12)
 
-    run(3e-9)
+run(3e-9)
     """
     table = run_mumax3(script, name, verbose=False)
+
+    out_file = open("./" + name + ".out/data.txt", "w")
+    out_file.write(script)
 
     return table
 
@@ -246,34 +253,102 @@ def write_to_folder(name, folder_name, folder_name_out):
     output_file.write(table)
 
 
-def write_table_to_folder(table, folder_name, name):
-    output_path = "./" + folder_name + ".tables/" + name + ".txt"
+def write_table_to_folder(table, folder_name, sim_number, table_number, frequency, eta):
+    output_path = "./" + folder_name + ".tables/sim" + sim_number + f"/table_{frequency / 1e9:.2f}GHz_eta{eta:.2f}_" + table_number + ".txt"
     output_file = open(output_path, "w")
     output_file.write(table)
 
 
-def run_simulation(folder_name, frequency, wavelength, eta, thresholdOI):
-    table000 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI,0,0,0)
-    write_table_to_folder(table000, folder_name, "table000")
-    table100 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 0, 0)
-    write_table_to_folder(table100, folder_name, "table100")
-    table110 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 1, 0)
-    write_table_to_folder(table110, folder_name, "table110")
-    table001 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 0, 0, 1)
-    write_table_to_folder(table001, folder_name, "table001")
-    table101 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 0, 1)
-    write_table_to_folder(table101, folder_name, "table101")
-    table111 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 1, 1)
-    write_table_to_folder(table111, folder_name, "table111")
+def mumax3_output_path(out_folder):
+    return "./" + out_folder + ".out/table.txt"
+
+
+def output_path_text(out_folder, table_number, sim_number):
+    path = "./" + out_folder + ".tables/sim" + sim_number + f"/table_{frequency / 1e9:.2f}GHz_eta{eta:.2f}_" + table_number + ".txt"
+    return path
+
+
+def output_path_fig(out_folder, table_number, sim_number, frequency, eta):
+    path = "./" + out_folder + ".tables/sim" + sim_number + f"/figure_{frequency / 1e9:.2f}GHz_eta{eta:.2f}_" + table_number + ".png"
+    return path
+
+
+def plot_and_save(out_folder, table_number, sim_number, frequency, eta):
+    table_adder = read_mumax3_table(output_path_text(out_folder, table_number, sim_number))
+
+    plt.figure()
+
+    nanosecond = 1e-9
+    plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeO"], label="O")
+    plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeS"], label="Sum")
+    plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeX"], label="X")
+    plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeY"], label="Y")
+    plt.plot(table_adder["t"] / nanosecond, table_adder["amplitudeCi"], label="Carry-In")
+
+    plt.xlabel("Time (ns)")
+    plt.ylabel("Amplitude")
+    plt.legend()
+
+    plt.savefig(output_path_fig(out_folder, table_number, sim_number, frequency, eta), dpi=300, bbox_inches="tight")
+
+
+def save_data(folder_name, sim_number):
+    file = open("./" + folder_name + ".out/data.txt", "r")
+    data = file.read()
+    out_file = open("./" + folder_name + ".tables/sim" + sim_number + "/data.txt")
+    out_file.write(data)
+
+
+def compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, inX, inY, inCi):
+    table = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, inX, inY, inCi)
+    table_number = str(inX) + str(inY) + str(inCi)
+    #table_file = open(mumax3_output_path(folder_name), "r")
+    #table = table_file.read()
+    write_table_to_folder(table, folder_name, sim_number, table_number, frequency, eta)
+    plot_and_save(folder_name, table_number, sim_number, frequency, eta)
+    save_data(folder_name, sim_number)
+
+
+def run_simulation(folder_name, frequency, wavelength, eta, thresholdOI, sim_number):
+    compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, 0, 0, 0)
+    compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, 1, 0, 0)
+    compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, 1, 1, 0)
+    compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, 0, 0, 1)
+    compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, 1, 0, 1)
+    compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, 1, 1, 1)
+    sim_number_increment(folder_name)
+
+
+def sim_number_increment(folder_name):
+    sim_file = open("./" + folder_name + ".tables/sim_number_save.txt", "r")
+    sim_number_str2 = sim_file.read()
+    sim_number_int = int(sim_number_str2)
+    out_sim_file = open("./" + folder_name + ".tables/sim_number_save.txt", "w")
+    out_sim_file.write(str(sim_number_int + 1))
 
 
 frequency = 9e9
 wavelength = 80.4781e-9
 eta = 0.5
 thresholdOI = 0.01
+sim_file_in = open("./Full_adder_final.tables/sim_number_save.txt", "r")
+sim_number_str = sim_file_in.read()
+sim_number = int(sim_number_str)
 
-run_simulation("Full_adder_final", frequency, wavelength, eta, thresholdOI)
+run_simulation("Full_adder_final", frequency, wavelength, eta, thresholdOI, sim_number)
 
+#table000 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI,0,0,0)
+#write_table_to_folder(table000, folder_name, "table000")
+#table100 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 0, 0)
+#write_table_to_folder(table100, folder_name, "table100")
+#table110 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 1, 0)
+#write_table_to_folder(table110, folder_name, "table110")
+#table001 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 0, 0, 1)
+#write_table_to_folder(table001, folder_name, "table001")
+#table101 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 0, 1)
+#write_table_to_folder(table101, folder_name, "table101")
+#table111 = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, 1, 1, 1)
+#write_table_to_folder(table111, folder_name, "table111")
 
 
 #print(table_adder)
