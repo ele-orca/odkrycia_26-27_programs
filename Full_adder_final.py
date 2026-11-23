@@ -20,14 +20,16 @@ def run_mumax3(script, name, verbose=False):
         print(p.stdout.decode('UTF-8'))
 
     if path.exists(outputdir + "/table.txt"):
-        table = read_mumax3_table_text(outputdir + "/table.txt")
+        table_pandas = read_mumax3_table(outputdir + "/table.txt")
+        table_text = read_mumax3_table_text(outputdir + "./table.txt")
 
     else:
-        table = None
+        table_pandas = None
+        table_text = None
 
     #fields = read_mumax3_ovffiles(outputdir)
 
-    return table  #, fields
+    return table_pandas , table_text #, fields
 
 
 def read_mumax3_table_text(filename):
@@ -238,7 +240,7 @@ Tableautosave(1e-12)
 //Autosave(m, 1e-12)
 
 run(4e-9)"""
-    table = run_mumax3(script, name, verbose=False)
+    _, table = run_mumax3(script, name, verbose=False)
 
     return table
 
@@ -336,13 +338,13 @@ phaseX := 0.0
 phaseY :=0.0
 phaseCi := 0.0
 
-if {inX} == 1{{
+if inX == 1{{
 	phaseX = pi
 }}
-if {inY} == 1{{
+if inY == 1{{
 	phaseY = pi
 }}
-if {inCi} == 1{{
+if inCi == 1{{
 	phaseCi = pi
 }}
 phaseI := 0.0
@@ -489,6 +491,153 @@ run(4e-9)
     out_file.write(data)
 
 
+def compute_inner_xor(wavelength, frequency, eta, name, inX, inY):
+    script = f"""
+B0 := 4e-3
+Msat = 1.1e6
+Aex = 18.5e-12
+alpha = 0.004
+Ku1 = 8.3e5
+AnisU = vector(0, 0, 1)
+eta := {eta}
+etaamp := 1/(sqrt(1+eta*eta))
+alpha_0 := 0.004
+alpha_max := 0.75
+
+theta := 25.84*pi/180
+wavelength := {wavelength}
+frequency := {frequency}
+width := 0.5 * wavelength
+d1 := 6 * wavelength
+d2 := 16 * wavelength
+d3 := 9 * wavelength
+d4 := 1 * wavelength
+d5 := 1 * wavelength
+x1 := 0.5 *d1 *cos(theta)
+h1 := 0.5 *d1*sin(theta)
+x2 := 0.5 *d2 *cos(theta)
+h2 := 0.5 *d2*sin(theta)
+sensorwidth := 0.1 * wavelength
+absorberwidth := 0.75 * wavelength
+deltax := -0.5 * width * sin(theta)
+deltay := -0.5 * width * cos(theta) + 0.5 * width
+
+cellsizex := 2.5e-9
+cellsizey := 2.5e-9
+xmaxsize := 2*x1+d5+d4+10*cellsizex
+ymaxsize := 2*h2 + 10*cellsizey
+setcellsize(cellsizex, cellsizey, 1e-9)
+setgridsize(768,384,1)
+
+thresholdOI := 0.01
+inX := 1
+inY := 0
+phaseX := 0.0
+phaseY := 0.0
+
+if {inX} == 1{{
+	phaseX = pi
+}}
+if {inY} == 1{{
+	phaseY = pi
+}}
+
+Region1 := rect(d1,width).RotZ(-theta).transl(-x1-deltax,-h1-deltay,0)
+Region2 := rect(d1,width).RotZ(-theta).transl(x1+deltax,h1+deltay,0)
+Region3 := rect(d1,width).RotZ(theta).transl(x1+deltax,-h1-deltay,0)
+Region4 := rect(d1,width).RotZ(theta).transl(-x1-deltax,h1+deltay,0)
+Region5 := rect(d5,width).transl(-0.5*d5-2*x1-deltax,0,0)
+Region6 := rect(d3,width).transl(0.5*d3 +2*x1+deltax,0,0)
+Region11 := rect(d4,width).transl(0.5*d4 +d3 +2*x1+deltax,0,0)
+Inner_xor_geom := Region1.Add(Region2).Add(Region3).Add(Region4).Add(Region5).Add(Region6).Add(Region11)
+
+RegionX := rect(width, width).RotZ(pi/4).transl(0,d1 * sin(theta) - width * sin(theta) + deltay, 0)
+RegionY := rect(width, width).RotZ(pi/4).transl(0,-d1 * sin(theta) + width * sin(theta) - deltay, 0)
+RegionO := rect(sensorwidth, width).transl(-d5-2*x1-deltax+0.5*sensorwidth, 0,0)
+RegionCo:= rect(sensorwidth, width).transl(d4+d3+2*x1+deltax-0.5*sensorwidth,0,0)
+Input_geometry := RegionX.Add(RegionY)
+Output_geometry:= RegionO.Add(RegionCo)
+
+Absorber1o:= rect(absorberwidth,width).transl(-d5-2*x1-deltax-0.5*absorberwidth,0,0)
+Absorber2o:= rect(absorberwidth,width).transl(-d5-2*x1-deltax-1.5*absorberwidth,0,0)
+Absorber3o:= rect(absorberwidth,width).transl(-d5-2*x1-deltax-2.5*absorberwidth,0,0)
+Absorber4o:= rect(absorberwidth,width).transl(-d5-2*x1-deltax-3.5*absorberwidth,0,0)
+AbsorberO_geom := Absorber1o.Add(Absorber2o).Add(Absorber3o).Add(Absorber4o)
+
+Absorber1co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+0.5*absorberwidth,0,0)
+Absorber2co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+1.5*absorberwidth,0,0)
+Absorber3co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+2.5*absorberwidth,0,0)
+Absorber4co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+3.5*absorberwidth,0,0)
+AbsorberCo_geom := Absorber1co.Add(Absorber2co).Add(Absorber3co).Add(Absorber4co)
+Absorber_geom := AbsorberO_geom.Add(AbsorberCo_geom)
+
+geometry_inner_xor := Inner_xor_geom.Add(AbsorberO_geom).Add(AbsorberCo_geom)
+
+SetGeom(geometry_inner_xor)
+saveas(geom, "inner_xor_geom")
+
+DefRegion(8, Absorber1o)
+DefRegion(9, Absorber2o)
+DefRegion(10, Absorber3o)
+DefRegion(11, Absorber4o)
+
+DefRegion(16, Absorber1co)
+DefRegion(17, Absorber2co)
+DefRegion(18, Absorber3co)
+DefRegion(19, Absorber4co)
+
+delta_alpha := alpha_max - alpha_0
+alpha.SetRegion(8, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
+alpha.SetRegion(9, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
+alpha.SetRegion(10, alpha_0 + (alpha_max - alpha_0) * Pow(0.75,2))
+alpha.SetRegion(11, alpha_max)
+
+alpha.SetRegion(16, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
+alpha.SetRegion(17, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
+alpha.SetRegion(18, alpha_0 + (alpha_max - alpha_0) * Pow(0.75,2))
+alpha.SetRegion(19, alpha_max)
+
+m = uniform(0,0,1)
+relax()
+
+saveas(m, "m_start")
+
+DefRegion(1, RegionX)
+DefRegion(2, RegionY)
+
+DefRegion(3, RegionO)
+
+B_ext.SetRegion(1, vector(etaamp * B0 * sin(2*pi*frequency*t+phaseX), -eta * etaamp * B0 * cos(2*pi*frequency*t+phaseX), 0))
+B_ext.SetRegion(2, vector(etaamp * B0 * sin(2*pi*frequency*t+phaseY), -eta * etaamp * B0 * cos(2*pi*frequency*t+phaseY), 0))
+
+sensorsize := (sensorwidth * width) / (cellsizex * cellsizey)
+
+mxO := m.Comp(0).Region(3)
+myO := m.Comp(1).Region(3)
+
+TableAddVar(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize),"amplitudeO","")
+Tableautosave(1e-12)
+//Autosave(m, 1e-12)
+
+run(2e-9)
+    """
+    table_pandas, table_text = run_mumax3(script, name, verbose=False)
+
+    return table_pandas, table_text
+
+
+def get_thresholdOI(wavelength, frequency, eta, sim_number, folder_name):
+    name = "inner_xor"
+    table_00_pandas, table_00_text = compute_inner_xor(wavelength, frequency, eta, name, 0, 0)
+    table_10_pandas, table_10_text = compute_inner_xor(wavelength, frequency, eta, name, 1, 0)
+    maximum = table_00_pandas["amplitudeO"].max()
+    minimum = table_10_pandas["amplitudeO"].max()
+    threshold = 0.5 * (maximum + minimum)
+    write_table_to_folder(table_00_text, folder_name, sim_number, "00xor", frequency, eta)
+    write_table_to_folder(table_10_text, folder_name, sim_number, "10xor", frequency, eta)
+    return threshold
+
+
 def compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, inX, inY, inCi):
     table = compute_adder(folder_name, frequency, wavelength, eta, thresholdOI, inX, inY, inCi)
     table_number = str(inX) + str(inY) + str(inCi)
@@ -498,7 +647,9 @@ def compute_table(folder_name, sim_number, frequency, wavelength, eta, threshold
     plot_and_save(folder_name, table_number, sim_number, frequency, eta)
 
 
-def run_simulation(folder_name, frequency, wavelength, eta, thresholdOI, sim_number):
+def run_simulation(folder_name, frequency, wavelength, eta, sim_number):
+    thresholdOI = get_thresholdOI(wavelength, frequency, eta, sim_number, folder_name)
+    print(thresholdOI)
     compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, 0, 0, 0)
     compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, 1, 0, 0)
     compute_table(folder_name, sim_number, frequency, wavelength, eta, thresholdOI, 1, 1, 0)
@@ -518,14 +669,12 @@ def sim_number_increment(folder_name):
 
 
 frequency = 9e9
-wavelength = 80.4781e-9
+wavelength = 60e-9
 eta = 0.5
-thresholdOI = 0.01
 sim_file_in = open("./Full_adder_final.tables/sim_number_save.txt", "r")
-sim_number_str = sim_file_in.read()
-sim_number = int(sim_number_str)
+sim_number = sim_file_in.read()
 
-run_simulation("Full_adder_final", frequency, wavelength, eta, thresholdOI, sim_number)
+run_simulation("Full_adder_final", frequency, wavelength, eta, sim_number)
 
 #print(table_adder)
 
