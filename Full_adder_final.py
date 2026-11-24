@@ -296,7 +296,7 @@ def plot_and_save(out_folder, table_number, sim_number, frequency, eta):
 
 
 def save_data(folder_name, sim_number, eta, wavelength, frequency, thresholdOI):
-    data = f"""
+    data = """
 B0 := 4e-3
 Msat = 1.1e6
 Aex = 18.5e-12
@@ -338,13 +338,13 @@ phaseX := 0.0
 phaseY :=0.0
 phaseCi := 0.0
 
-if inX == 1{{
+if {inX} == 1{{
 	phaseX = pi
 }}
-if inY == 1{{
+if {inY} == 1{{
 	phaseY = pi
 }}
-if inCi == 1{{
+if {inCi} == 1{{
 	phaseCi = pi
 }}
 phaseI := 0.0
@@ -507,7 +507,7 @@ alpha_max := 0.75
 theta := 25.84*pi/180
 wavelength := {wavelength}
 frequency := {frequency}
-width := 0.5 * wavelength
+width := 0.75 * wavelength
 d1 := 6 * wavelength
 d2 := 16 * wavelength
 d3 := 9 * wavelength
@@ -529,7 +529,6 @@ ymaxsize := 2*h2 + 10*cellsizey
 setcellsize(cellsizex, cellsizey, 1e-9)
 setgridsize(768,384,1)
 
-thresholdOI := 0.01
 inX := 1
 inY := 0
 phaseX := 0.0
@@ -541,6 +540,7 @@ if {inX} == 1{{
 if {inY} == 1{{
 	phaseY = pi
 }}
+
 
 Region1 := rect(d1,width).RotZ(-theta).transl(-x1-deltax,-h1-deltay,0)
 Region2 := rect(d1,width).RotZ(-theta).transl(x1+deltax,h1+deltay,0)
@@ -615,6 +615,7 @@ sensorsize := (sensorwidth * width) / (cellsizex * cellsizey)
 mxO := m.Comp(0).Region(3)
 myO := m.Comp(1).Region(3)
 
+TableAddVar(hypot(mxO.Average(), myO.Average()), "ampOcoh", "")
 TableAddVar(sqrt((Sum(Mul(mxO,mxO)) + Sum(Mul(myO,myO)))/sensorsize),"amplitudeO","")
 Tableautosave(1e-12)
 //Autosave(m, 1e-12)
@@ -630,8 +631,8 @@ def get_thresholdOI(wavelength, frequency, eta, sim_number, folder_name):
     name = "inner_xor"
     table_00_pandas, table_00_text = compute_inner_xor(wavelength, frequency, eta, name, 0, 0)
     table_10_pandas, table_10_text = compute_inner_xor(wavelength, frequency, eta, name, 1, 0)
-    maximum = table_00_pandas["amplitudeO"].max()
-    minimum = table_10_pandas["amplitudeO"].max()
+    maximum = table_00_pandas["ampOcoh"].max()
+    minimum = table_10_pandas["ampOcoh"].max()
     threshold = 0.5 * (maximum + minimum)
     write_table_to_folder(table_00_text, folder_name, sim_number, "00xor", frequency, eta)
     write_table_to_folder(table_10_text, folder_name, sim_number, "10xor", frequency, eta)
