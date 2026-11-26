@@ -79,6 +79,8 @@ sensorwidth := 0.1 * wavelength
 absorberwidth := 0.75 * wavelength
 deltax := -0.5 * width * sin(theta)
 deltay := -0.5 * width * cos(theta) + 0.5 * width
+deltaxabs := 0.5 * absorberwidth * cos(theta)
+deltayabs := 0.5 * absorberwidth * sin(theta)
     
 cellsizex := 2.5e-9
 cellsizey := 2.5e-9
@@ -145,7 +147,13 @@ Absorber3co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+2.5*absorberwid
 Absorber4co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+3.5*absorberwidth,0,0)
 AbsorberCo_geom := Absorber1co.Add(Absorber2co).Add(Absorber3co).Add(Absorber4co)
 
-Absorber_geom := AbsorberS_geom.Add(AbsorberO_geom).Add(AbsorberCo_geom)
+Absorber1i:= rect(absorberwidth, width).RotZ(-theta).transl(-deltax+deltaxabs,-2*h2-deltay-deltayabs,0)
+Absorber2i:= rect(absorberwidth, width).RotZ(-theta).transl(-deltax+3*deltaxabs,-2*h2-deltay-3*deltayabs,0)
+Absorber3i:= rect(absorberwidth, width).RotZ(-theta).transl(-deltax+5*deltaxabs,-2*h2-deltay-5*deltayabs,0)
+Absorber4i:= rect(absorberwidth, width).RotZ(-theta).transl(-deltax+7*deltaxabs,-2*h2-deltay-7*deltayabs,0)
+AbsorberI_geom := Absorber1i.Add(Absorber2i).Add(Absorber3i).Add(Absorber4i)
+
+Absorber_geom := AbsorberS_geom.Add(AbsorberO_geom).Add(AbsorberCo_geom).Add(AbsorberI_geom)
 
 geometry_full_adder := InnerWaveguideGeometry.Add(OuterWaveguideGeometry).Add(Absorber_geom)
 
@@ -167,6 +175,11 @@ DefRegion(17, Absorber2co)
 DefRegion(18, Absorber3co)
 DefRegion(19, Absorber4co)
 
+DefRegion(20, Absorber1i)
+DefRegion(21, Absorber2i)
+DefRegion(22, Absorber3i)
+DefRegion(23, Absorber4i)
+
 delta_alpha := alpha_max - alpha_0
 alpha.SetRegion(8, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
 alpha.SetRegion(9, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
@@ -182,6 +195,11 @@ alpha.SetRegion(16, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
 alpha.SetRegion(17, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
 alpha.SetRegion(18, alpha_0 + (alpha_max - alpha_0) * Pow(0.75,2))
 alpha.SetRegion(19, alpha_max)
+
+alpha.SetRegion(20, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
+alpha.SetRegion(21, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
+alpha.SetRegion(22, alpha_0 + (alpha_max - alpha_0) * Pow(0.75,2))
+alpha.SetRegion(23, alpha_max)
 
 m = uniform(0,0,1)
 relax()
@@ -218,7 +236,7 @@ myY:= m.Comp(1).Region(2)
 mxCi:= m.Comp(0).Region(3)
 myCi:= m.Comp(1).Region(3)
 
-B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t) * (2*heaviside(sqrt(Sum(mxO)/sensorsize * Sum(mxO)/sensorsize + Sum(myO)/sensorsize * Sum(myO)/sensorsize) - thresholdOI) - 1), -B0 * cos(2*pi*frequency*t) * (2*heaviside(sqrt(Sum(mxO)/sensorsize * Sum(mxO)/sensorsize + Sum(myO)/sensorsize * Sum(myO)/sensorsize) - thresholdOI) - 1),0))
+B_ext.SetRegion(5, vector(etaamp * B0 * sin(2*pi*frequency*t) * (2*heaviside(hypot(mxO.Average(), myO.Average()) - thresholdOI) - 1), -eta * etaamp * B0 * cos(2*pi*frequency*t) * (2*heaviside(hypot(mxO.Average(), myO.Average()) - thresholdOI) - 1),0))
 
 TableAdd(m.Region(4))
 TableAdd(m.Region(7))
@@ -231,11 +249,11 @@ TableAddVar(sqrt((Sum(Mul(mxY,mxY)) + Sum(Mul(myY,myY)))/inputsize),"amplitudeY"
 TableAddVar(sqrt((Sum(Mul(mxCi,mxCi)) + Sum(Mul(myCi,myCi)))/inputsize),"amplitudeCi","")
 TableAddVar(Sum(mxCo)/sensorsize, "mxCo", "")
 TableAddVar(Sum(myCo)/sensorsize, "myCo", "")
-TableAddVar(sqrt(Sum(mxO)/sensorsize * Sum(mxO)/sensorsize + Sum(myO)/sensorsize * Sum(myO)/sensorsize), "ampOcoh", "")
-TableAddVar(sqrt(Sum(mxS)/sensorsize * Sum(mxS)/sensorsize + Sum(myS)/sensorsize * Sum(myS)/sensorsize), "ampScoh", "")
-TableAddVar(sqrt(Sum(mxX)/inputsize * Sum(mxX)/inputsize + Sum(myX)/inputsize * Sum(myX)/inputsize), "ampXcoh", "")
-TableAddVar(sqrt(Sum(mxY)/inputsize * Sum(mxY)/inputsize + Sum(myY)/inputsize * Sum(myY)/inputsize), "ampYcoh", "")
-TableAddVar(sqrt(Sum(mxCi)/inputsize * Sum(mxCi)/inputsize + Sum(myCi)/inputsize * Sum(myCi)/inputsize), "ampCicoh", "")
+TableAddVar(hypot(mxO.Average(), myO.Average()), "ampOcoh", "")
+TableAddVar(hypot(mxS.Average(), myS.Average()), "ampScoh", "")
+TableAddVar(hypot(mxX.Average(), myX.Average()), "ampXcoh", "")
+TableAddVar(hypot(mxY.Average(), myY.Average()), "ampYcoh", "")
+TableAddVar(hypot(mxCi.Average(), myCi.Average()), "ampCicoh", "")
 Tableautosave(1e-12)
 //Autosave(m, 1e-12)
 
@@ -296,7 +314,7 @@ def plot_and_save(out_folder, table_number, sim_number, frequency, eta):
 
 
 def save_data(folder_name, sim_number, eta, wavelength, frequency, thresholdOI):
-    data = """
+    data = f"""
 B0 := 4e-3
 Msat = 1.1e6
 Aex = 18.5e-12
@@ -325,6 +343,8 @@ sensorwidth := 0.1 * wavelength
 absorberwidth := 0.75 * wavelength
 deltax := -0.5 * width * sin(theta)
 deltay := -0.5 * width * cos(theta) + 0.5 * width
+deltaxabs := 0.5 * absorberwidth * cos(theta)
+deltayabs := 0.5 * absorberwidth * sin(theta)
     
 cellsizex := 2.5e-9
 cellsizey := 2.5e-9
@@ -338,13 +358,13 @@ phaseX := 0.0
 phaseY :=0.0
 phaseCi := 0.0
 
-if {inX} == 1{{
+if inX == 1{{
 	phaseX = pi
 }}
-if {inY} == 1{{
+if inY == 1{{
 	phaseY = pi
 }}
-if {inCi} == 1{{
+if inCi == 1{{
 	phaseCi = pi
 }}
 phaseI := 0.0
@@ -391,7 +411,13 @@ Absorber3co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+2.5*absorberwid
 Absorber4co:= rect(absorberwidth,width).transl(d4+d3+2*x1+deltax+3.5*absorberwidth,0,0)
 AbsorberCo_geom := Absorber1co.Add(Absorber2co).Add(Absorber3co).Add(Absorber4co)
 
-Absorber_geom := AbsorberS_geom.Add(AbsorberO_geom).Add(AbsorberCo_geom)
+Absorber1i:= rect(absorberwidth, width).RotZ(-theta).transl(-deltax+deltaxabs,-2*h2-deltay-deltayabs,0)
+Absorber2i:= rect(absorberwidth, width).RotZ(-theta).transl(-deltax+3*deltaxabs,-2*h2-deltay-3*deltayabs,0)
+Absorber3i:= rect(absorberwidth, width).RotZ(-theta).transl(-deltax+5*deltaxabs,-2*h2-deltay-5*deltayabs,0)
+Absorber4i:= rect(absorberwidth, width).RotZ(-theta).transl(-deltax+7*deltaxabs,-2*h2-deltay-7*deltayabs,0)
+AbsorberI_geom := Absorber1i.Add(Absorber2i).Add(Absorber3i).Add(Absorber4i)
+
+Absorber_geom := AbsorberS_geom.Add(AbsorberO_geom).Add(AbsorberCo_geom).Add(AbsorberI_geom)
 
 geometry_full_adder := InnerWaveguideGeometry.Add(OuterWaveguideGeometry).Add(Absorber_geom)
 
@@ -413,6 +439,11 @@ DefRegion(17, Absorber2co)
 DefRegion(18, Absorber3co)
 DefRegion(19, Absorber4co)
 
+DefRegion(20, Absorber1i)
+DefRegion(21, Absorber2i)
+DefRegion(22, Absorber3i)
+DefRegion(23, Absorber4i)
+
 delta_alpha := alpha_max - alpha_0
 alpha.SetRegion(8, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
 alpha.SetRegion(9, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
@@ -428,6 +459,11 @@ alpha.SetRegion(16, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
 alpha.SetRegion(17, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
 alpha.SetRegion(18, alpha_0 + (alpha_max - alpha_0) * Pow(0.75,2))
 alpha.SetRegion(19, alpha_max)
+
+alpha.SetRegion(20, alpha_0 + (alpha_max - alpha_0) * Pow(0.25,2))
+alpha.SetRegion(21, alpha_0 + (alpha_max - alpha_0) * Pow(0.5,2))
+alpha.SetRegion(22, alpha_0 + (alpha_max - alpha_0) * Pow(0.75,2))
+alpha.SetRegion(23, alpha_max)
 
 m = uniform(0,0,1)
 relax()
@@ -464,7 +500,7 @@ myY:= m.Comp(1).Region(2)
 mxCi:= m.Comp(0).Region(3)
 myCi:= m.Comp(1).Region(3)
 
-B_ext.SetRegion(5, vector(B0 * sin(2*pi*frequency*t) * (2*heaviside(sqrt(Sum(mxO)/sensorsize * Sum(mxO)/sensorsize + Sum(myO)/sensorsize * Sum(myO)/sensorsize) - thresholdOI) - 1), -B0 * cos(2*pi*frequency*t) * (2*heaviside(sqrt(Sum(mxO)/sensorsize * Sum(mxO)/sensorsize + Sum(myO)/sensorsize * Sum(myO)/sensorsize) - thresholdOI) - 1),0))
+B_ext.SetRegion(5, vector(etaamp * B0 * sin(2*pi*frequency*t) * (2*heaviside(hypot(mxO.Average(), myO.Average()) - thresholdOI) - 1), -eta * etaamp * B0 * cos(2*pi*frequency*t) * (2*heaviside(hypot(mxO.Average(), myO.Average()) - thresholdOI) - 1),0))
 
 TableAdd(m.Region(4))
 TableAdd(m.Region(7))
@@ -477,11 +513,11 @@ TableAddVar(sqrt((Sum(Mul(mxY,mxY)) + Sum(Mul(myY,myY)))/inputsize),"amplitudeY"
 TableAddVar(sqrt((Sum(Mul(mxCi,mxCi)) + Sum(Mul(myCi,myCi)))/inputsize),"amplitudeCi","")
 TableAddVar(Sum(mxCo)/sensorsize, "mxCo", "")
 TableAddVar(Sum(myCo)/sensorsize, "myCo", "")
-TableAddVar(sqrt(Sum(mxO)/sensorsize * Sum(mxO)/sensorsize + Sum(myO)/sensorsize * Sum(myO)/sensorsize), "ampOcoh", "")
-TableAddVar(sqrt(Sum(mxS)/sensorsize * Sum(mxS)/sensorsize + Sum(myS)/sensorsize * Sum(myS)/sensorsize), "ampScoh", "")
-TableAddVar(sqrt(Sum(mxX)/inputsize * Sum(mxX)/inputsize + Sum(myX)/inputsize * Sum(myX)/inputsize), "ampXcoh", "")
-TableAddVar(sqrt(Sum(mxY)/inputsize * Sum(mxY)/inputsize + Sum(myY)/inputsize * Sum(myY)/inputsize), "ampYcoh", "")
-TableAddVar(sqrt(Sum(mxCi)/inputsize * Sum(mxCi)/inputsize + Sum(myCi)/inputsize * Sum(myCi)/inputsize), "ampCicoh", "")
+TableAddVar(hypot(mxO.Average(), myO.Average()), "ampOcoh", "")
+TableAddVar(hypot(mxS.Average(), myS.Average()), "ampScoh", "")
+TableAddVar(hypot(mxX.Average(), myX.Average()), "ampXcoh", "")
+TableAddVar(hypot(mxY.Average(), myY.Average()), "ampYcoh", "")
+TableAddVar(hypot(mxCi.Average(), myCi.Average()), "ampCicoh", "")
 Tableautosave(1e-12)
 //Autosave(m, 1e-12)
 
@@ -669,9 +705,9 @@ def sim_number_increment(folder_name):
     out_sim_file.write(str(sim_number_int + 1))
 
 
-frequency = 9e9
+frequency = 7e9
 wavelength = 60e-9
-eta = 0.5
+eta = 1
 sim_file_in = open("./Full_adder_final.tables/sim_number_save.txt", "r")
 sim_number = sim_file_in.read()
 
